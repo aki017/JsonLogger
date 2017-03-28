@@ -23,7 +23,7 @@
       eventSource.ProjectStarted += this.ProjectStarted;
       eventSource.ProjectFinished += this.ProjectFinished;
     }
-    
+
     private void WarningRaised(object sender, BuildWarningEventArgs e)
     {
       this.result.Peek().Add(new Entry
@@ -64,7 +64,16 @@
     private void ProjectFinished(object sender, ProjectFinishedEventArgs e)
     {
       var fileName = this.projectFile.Pop();
-      File.WriteAllText(fileName + ".JsonLogger.Output.json", JsonConvert.SerializeObject(this.result.Pop()));
+      var outputPath = fileName + ".JsonLogger.Output.json";
+      var data = this.result.Pop();
+      if (File.Exists(outputPath))
+      {
+        var original = JsonConvert.DeserializeObject<List<Entry>>(File.ReadAllText(outputPath));
+        original.AddRange(data);
+        data = original;
+      }
+
+      File.WriteAllText(outputPath, JsonConvert.SerializeObject(data));
     }
 
 #pragma warning disable 414
